@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>에르모어 손익보고 대시보드 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#fafafa;--bg2:#f3f3f5;--text:#1a1a2e;--text2:#6b6b80;--border:#e4e4ec;--border2:#d0d0dc;--radius:10px;--rsm:6px;
+  /* 긍정: 티얼(청록) — 핑크/보라와 세련되게 어울림 */
+  --pos:#2A7D7B;--pos-bg:#EAF5F5;
+  /* 부정: 뮤트 코랄 */
+  --neg:#B85450;--neg-bg:#FAF0EF;
+  /* 에르모어 로즈핑크 계열 */
+  --e1:#C2446E;   /* 찐 로즈 — 자사몰MD */
+  --e2:#E8759A;   /* 미디엄 핑크 — B2C이커머스 */
+  --e3:#F2AABF;   /* 라이트 핑크 — B2B유통 */
+  --e-main:#C2446E; /* 에르모어 대표 */
+  /* 링크맘 뮤트 모브 */
+  --l-main:#7B5EA7; /* 톤다운 보라 */
+  --l-lt:#B8A0D4;
+  --l-xlt:#E4DBF0;
+  /* 판관비 변동비 보라 계열 */
+  --v1:#6B4FA0;--v2:#8E72B8;--v3:#B8A0D4;--v4:#DCCFED;
+  /* 원가율 포인트 */
+  --cogs:#2E5FA3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:.5px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100}
+.hl{font-size:15px;font-weight:700;letter-spacing:-.3px}.hl span{color:var(--purple)}
+.hm{font-size:11px;color:var(--text2)}
+.mn{padding:20px 24px 40px;max-width:1400px;margin:0 auto}
+.tabs{display:flex;gap:2px;margin-bottom:20px;border-bottom:.5px solid var(--border)}
+.tab{padding:8px 16px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-.5px;font-family:inherit}
+.tab.on{color:var(--text);border-bottom-color:var(--text)}
+.tc{display:none}.tc.on{display:block}
+.ct{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tg{padding:5px 12px;font-size:12px;border:.5px solid var(--border2);border-radius:var(--rsm);background:transparent;cursor:pointer;color:var(--text2);font-family:inherit}
+.tg.on{background:var(--text);color:#fff;border-color:var(--text)}
+.sb{padding:5px 12px;font-size:12px;border:.5px solid var(--border2);border-radius:var(--rsm);background:transparent;cursor:pointer;color:var(--text2);font-family:inherit;transition:all .15s}
+select{padding:5px 28px 5px 10px;font-size:12px;border:.5px solid var(--border2);border-radius:var(--rsm);background:var(--bg);color:var(--text);font-family:inherit;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.card{background:var(--bg2);border-radius:var(--rsm);padding:14px 16px;overflow:hidden}
+.card-l{border-radius:0 var(--rsm) var(--rsm) 0}
+.cl{font-size:11px;color:var(--text2);margin-bottom:5px}
+.cv{font-size:20px;font-weight:500}
+.cs{font-size:11px;margin-top:3px}
+.pos{color:#2A7D7B}.neg{color:#B85450}
+.card-o{border-left:3px solid var(--cogs)}
+.bx{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:16px}
+.bxf{background:var(--bg);border:.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.bt{font-size:13px;font-weight:500;margin-bottom:10px}
+.lg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--text2);margin-bottom:10px}
+.li{display:flex;align-items:center;gap:4px}
+.ld{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.cw{position:relative;width:100%}
+.dw{position:relative;width:100%;height:100%}
+.dc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.dcl{font-size:10px;color:var(--text2);margin-bottom:2px}
+.dcv{font-size:14px;font-weight:600;line-height:1.2}
+.dcs{font-size:10px;color:var(--text2);margin-top:1px}
+/* 테이블 */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;font-size:12px;border-collapse:collapse;min-width:600px}
+th{font-size:11px;font-weight:500;color:var(--text2);text-align:right;padding:6px 8px;border-bottom:.5px solid var(--border);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:6px 8px;text-align:right;border-bottom:.5px solid var(--border);white-space:nowrap}
+td:first-child{text-align:left}
+tr.bold td{font-weight:600;background:var(--bg2)}
+tr.section td{font-weight:600;background:#f0f0f0;color:var(--text)}
+tr.acc{cursor:pointer;user-select:none}
+tr.acc:hover td{opacity:.8}
+tr.acc td:first-child .ar{display:inline-block;margin-right:4px;transition:transform .2s;font-size:10px;color:var(--text2)}
+tr.acc.open td:first-child .ar{transform:rotate(90deg)}
+tr.sub{display:none}
+tr.sub td{font-size:11px;color:var(--text2)}
+tr.sub td:first-child{padding-left:20px}
+tr.sub.show{display:table-row}
+tr.subsub td:first-child{padding-left:36px}
+.dp{color:#2A7D7B;font-size:10px}.dn{color:#B85450;font-size:10px}.dz{color:var(--text2);font-size:10px}
+.dvd{width:.5px;height:16px;background:var(--border)}
+/* 회사 구분 뱃지 */
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px;margin-right:4px}
+.badge-e{background:#FDEEF3;color:#A03358}   /* 에르모어 로즈 */
+.badge-l{background:#F0EBFF;color:#5B3D8A}   /* 링크맘 모브 */
+.badge-k{background:#F5F0FF;color:#5B21B6}
+/* 섹션 구분선 */
+.sec-hdr{display:flex;align-items:center;gap:8px;margin:20px 0 12px;font-size:12px;font-weight:600;color:var(--text2)}
+.sec-hdr::after{content:'';flex:1;height:.5px;background:var(--border)}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div class="hl">에르모어 <span>손익보고</span></div>
+  <div class="hm" id="hm"></div>
+</div>
+<div class="mn">
+  <div class="tabs">
+    <button class="tab on" onclick="sw('pl',this)">손익보고</button>
+    <button class="tab" onclick="sw('dt',this)">손익상세</button>
+    <button class="tab" onclick="sw('sl',this)">매출유형별</button>
+    <button class="tab" onclick="sw('sg',this)">사업부팀별</button>
+    <button class="tab" onclick="sw('sa',this)">판관비 분석</button>
+  </div>
+
+  <!-- 손익보고 -->
+  <div id="tab-pl" class="tc on">
+    <div class="ct"><button class="tg on">월별</button><select id="pl-s" onchange="rd('pl')"></select></div>
+    <div id="pl-k"></div>
+    <div id="pl-cum" style="margin-bottom:16px"></div>
+    <div class="bxf"><div class="bt" id="pl-t"></div><div class="lg" id="pl-l"></div><div class="cw" id="pl-w" style="height:260px"><canvas id="plC"></canvas></div></div>
+    <div class="bxf"><div class="bt">비율 분석</div><div class="lg" id="pl-rl"></div><div id="pl-ri"></div></div>
+  </div>
+
+  <!-- 손익상세 -->
+  <div id="tab-dt" class="tc">
+    <div class="ct"><button class="tg on" id="dt-m" onclick="sm('dt','m')">월별</button><button class="tg" id="dt-c" onclick="sm('dt','c')">누계</button><select id="dt-s" onchange="rd('dt')"></select></div>
+    <div id="dt-k" style="margin-bottom:16px"></div>
+    <div class="bxf"><div class="tbl-wrap" id="dt-tb"></div></div>
+  </div>
+
+  <!-- 매출유형별 -->
+  <div id="tab-sl" class="tc">
+    <div class="ct">
+      <button class="tg on">월별</button>
+      <select id="sl-s" onchange="rd('sl')"></select>
+      <div class="dvd"></div>
+      <button class="sb on" id="slv-all" onclick="sslv('all',this)">전체</button>
+      <button class="sb" id="slv-e" onclick="sslv('e',this)">에르모어</button>
+      <button class="sb" id="slv-l" onclick="sslv('l',this)">링크맘</button>
+    </div>
+    <div id="sl-k"></div>
+    <div id="sl-cum" style="margin-bottom:16px"></div>
+    <div class="g2">
+      <div class="bx"><div class="bt" id="sl-pt"></div><div class="lg" id="sl-lg"></div><div class="cw" style="height:230px"><div class="dw"><canvas id="slPie"></canvas><div class="dc"><div class="dcl">당월 매출</div><div class="dcv" id="sl-dv"></div></div></div></div></div>
+      <div class="bx"><div class="bt" id="sl-bt"></div><div class="lg" id="sl-blg"></div><div class="cw" style="height:230px"><canvas id="slBar"></canvas></div></div>
+    </div>
+    <div class="bxf"><div class="tbl-wrap" id="sl-tb"></div></div>
+  </div>
+
+  <!-- 사업부팀별 -->
+  <div id="tab-sg" class="tc">
+    <div class="ct">
+      <button class="tg on">월별</button>
+      <select id="sg-s" onchange="rd('sg')"></select>
+      <div class="dvd"></div>
+      <button class="sb on" id="sv-a" onclick="ssv('a',this)">전체</button>
+      <button class="sb" id="sv-e" onclick="ssv('e',this)">에르모어</button>
+      <button class="sb" id="sv-l" onclick="ssv('l',this)">링크맘</button>
+    </div>
+    <!-- 에르모어 선택 시 팀 서브탭 -->
+    <div id="sg-sub-tabs" style="display:none;margin-bottom:16px">
+      <div style="display:flex;gap:6px;padding:10px 14px;background:var(--bg2);border-radius:var(--rsm);align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text2);margin-right:4px">팀별:</span>
+        <button class="sb on" id="et-all" onclick="setET('all',this)">에르모어 전체</button>
+        <button class="sb" id="et-0" onclick="setET(0,this)">자사몰MD팀</button>
+        <button class="sb" id="et-1" onclick="setET(1,this)">B2C이커머스팀</button>
+        <button class="sb" id="et-2" onclick="setET(2,this)">B2B유통팀</button>
+      </div>
+    </div>
+    <!-- 링크맘 서브탭 -->
+    <div id="sg-lm-tabs" style="display:none;margin-bottom:16px">
+      <div style="display:flex;gap:6px;padding:10px 14px;background:var(--bg2);border-radius:var(--rsm);align-items:center;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text2);margin-right:4px">팀별:</span>
+        <button class="sb on" id="lt-all" onclick="setLT('all',this)">링크맘 전체</button>
+        <button class="sb" id="lt-0" onclick="setLT(0,this)">링크맘</button>
+      </div>
+    </div>
+    <!-- 메인 뷰 (전체/에르모어 전체/링크맘) -->
+    <div id="sg-main">
+      <div id="sg-kpi-area"></div>
+      <div id="sg-cum" style="margin-bottom:16px"></div>
+      <div class="g2">
+        <div class="bx"><div class="bt">매출 구성</div><div class="cw" style="height:230px"><div class="dw"><canvas id="sgPie"></canvas><div class="dc"><div class="dcl">총 매출</div><div class="dcv" id="sg-dv"></div><div class="dcs" id="sg-ds"></div></div></div></div></div>
+        <div class="bx"><div class="bt" id="sg-ct"></div><div class="cw" style="height:230px"><canvas id="sgBar"></canvas></div></div>
+      </div>
+      <!-- 변동비 추이 섹션 -->
+      <div class="bxf">
+        <div class="bt" id="sg-var-t"></div>
+        <div class="lg" id="sg-var-lg"></div>
+        <div class="g2" style="margin-bottom:0">
+          <div class="cw" style="height:220px"><canvas id="sgVarBar"></canvas></div>
+          <div class="cw" style="height:220px"><canvas id="sgVarTr"></canvas></div>
+        </div>
+      </div>
+      <div class="bxf"><div class="tbl-wrap" id="sg-tb"></div></div>
+    </div>
+    <!-- 에르모어 팀 드릴다운 뷰 -->
+    <div id="sg-det" style="display:none">
+      <div class="g4" id="sd-k"></div>
+      <div class="bxf">
+        <div class="bt" id="sd-t"></div>
+        <div class="lg" id="sd-bar-lg"></div>
+        <div class="cw" style="height:260px"><canvas id="sdBar"></canvas></div>
+      </div>
+      <div class="g2">
+        <div class="bx">
+          <div class="bt">원가율/공헌이익률</div>
+          <div class="lg" id="sd-line-lg"></div>
+          <div class="cw" style="height:200px"><canvas id="sdLine"></canvas></div>
+        </div>
+        <div class="bx">
+          <div class="bt" id="sd-pt"></div>
+          <div class="cw" style="height:200px">
+            <div class="dw"><canvas id="sdPie"></canvas>
+              <div class="dc"><div class="dcl">매출</div><div class="dcv" id="sd-pv"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 변동비 구성요소 섹션 -->
+      <div class="bxf">
+        <div class="bt" id="sd-var-t"></div>
+        <div class="lg" id="sd-var-lg"></div>
+        <div class="g2" style="margin-bottom:0">
+          <div class="cw" style="height:220px"><canvas id="sdVarBar"></canvas></div>
+          <div class="cw" style="height:220px"><canvas id="sdVarTr"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 판관비 -->
+  <div id="tab-sa" class="tc">
+    <div class="ct"><button class="tg on" id="sa-m" onclick="sm('sa','m')">월별</button><button class="tg" id="sa-c" onclick="sm('sa','c')">누계</button><select id="sa-s" onchange="rd('sa')"></select></div>
+    <div class="g4" id="sa-k"></div>
+    <div class="g2">
+      <div class="bx"><div class="bt" id="sa-pt"></div><div class="lg"><span class="li"><span class="ld" style="background:#C2601A"></span>변동비</span><span class="li"><span class="ld" style="background:#F0A96B"></span>고정비</span></div><div class="cw" style="height:210px"><div class="dw"><canvas id="saPie"></canvas><div class="dc"><div class="dcl">판관비 합계</div><div class="dcv" id="sa-dv"></div><div class="dcs" id="sa-ds"></div></div></div></div></div>
+      <div class="bx"><div class="bt" id="sa-tt"></div><div class="lg"><span class="li"><span class="ld" style="background:#D4753A"></span>변동비</span><span class="li"><span class="ld" style="background:#F5C9A0"></span>고정비</span></div><div class="cw" style="height:210px"><canvas id="saTr"></canvas></div></div>
+    </div>
+    <div class="g2" style="margin-bottom:16px">
+      <div class="bx"><div class="bt">변동비 항목별</div><div class="cw" style="height:200px"><canvas id="vaC"></canvas></div></div>
+      <div class="bx"><div class="bt">고정비 주요 항목</div><div class="cw" style="height:200px"><canvas id="fiC"></canvas></div></div>
+    </div>
+    <div class="bxf"><div class="bt" id="sa-dt"></div><div id="sa-df"></div></div>
+  </div>
+</div>
+
+<script>
+// ── 내장 데이터 ──
+const G = {
+  ML:["1월","2월","3월","4월"],N:4,
+  rev:[3900429927,4260890767,4766710147,5728013639],
+  cogs:[2453494293,2953322933,2993167865,3800460339],
+  gp:[1446935634,1307567834,1773542282,1927553300],
+  sga:[1325796634,1363163201,2066221376,1925099465],
+  op:[121139000,-55595367,-292679094,2453835],
+  var:[664747084,675009731,903417219,1188041190],
+  fix:[661049550,688153470,1162804157,737058275],
+  varI:{"운반비":[164126530,182986750,139226723,182621724],"지급수수료":[216107705,188286925,311494467,377102244],"광고선전비":[281219060,285954906,387709136,618049451],"판매촉진비":[3293789,17781150,64986893,10267771]},
+  fixI:{"직원급여":[311224620,311335597,330991252,335369134],"퇴직급여":[15388631,22979886,41286918,13839840],"복리후생비":[19997511,30780492,27350100,59894119],"감가상각비":[96725265,96725265,96725265,96780947],"사용권자산상각(건물)":[101230014,104913457,104913456,100639441],"무형자산상각":[19923000,19923000,413952027,19923000],"지급수수료(고정)":[6463472,6463472,6463472,6463472],"수선비":[3690000,6012000,440000,15000000],"기타고정비":[106407637,107419799,154532843,88999252]},
+  seg:{
+    "자사몰MD팀":{"rev":[2663603368,3065792506,3294710875,3823224938],"cogs":[1804995918,2202615699,2030974713,2597990381],"contrib":[475864286,391397168,600237925,359770470],"var":[382743164,471779639,663498237,865464087],"fix":[175849255,191581851,241142707,226937901],"op":[300015030,199815317,359095218,132832569]},"B2C이커머스팀":{"rev":[506886468,258920101,364079396,479803623],"cogs":[237637125,126717920,117468826,226258573],"contrib":[88465035,37873026,162374494,120368703],"var":[180784308,94329154,84236077,133176347],"fix":[95586453,96791657,117144559,100887777],"op":[-7121418,-58918631,45229934,19480926]},"B2B유통팀":{"rev":[213843253,221571045,400301380,388698211],"cogs":[166950728,150612119,253326160,224096200],"contrib":[9171270,25349189,63810518,67780509],"var":[37721256,45609737,83164701,96821502],"fix":[54937926,58851165,70476584,60888063],"op":[-45766657,-33501976,-6666066,6892446]},"링크맘":{"rev":[518056625,695200490,685844196,1023079939],"cogs":[243910522,473377195,591398166,752115185],"contrib":[210647747,158532094,21927826,178385500],"var":[63498356,63291201,72518204,92579254],"fix":[334675915,340928797,734040307,348344534],"op":[-124028168,-182396703,-712112481,-169959034]}
+  },
+  // 매출유형별 사업부 상세
+  salesDetail:{
+    "제품매출":{
+      "자사몰MD팀":[802373412,1287281841,1339410969,2309718667],
+      "B2C이커머스팀":[452170248,199930998,313468073,422063642],
+      "B2B유통팀":[139680048,122162405,71489202,233407737],
+      "링크맘":[0,0,0,4657273]
+    },
+    "상품매출":{
+      "자사몰MD팀":[228246085,240143741,68126704,126651859],
+      "B2C이커머스팀":[54716220,58989103,50611323,57739981],
+      "B2B유통팀":[1054303,3776918,2065802,994032],
+      "링크맘":[473234377,640642688,632921032,957039810]
+    },
+    "특정매출":{
+      "자사몰MD팀":[454479331,239359714,363361437,168571323],
+      "B2C이커머스팀":[0,0,0,0],
+      "B2B유통팀":[-3860578,16475852,101773527,66641417],
+      "링크맘":[2868836,12621771,11829329,24079420]
+    }
+  },
+  salesT:{"제품매출":[1394223708,1609375244,1724368244,2969847319],"상품매출":[757250985,943552450,753724861,1142425682],"특정매출":[453487589,268457337,476964293,259292160]}
+};
+
+// ── 상수 ──
+const ML=G.ML;
+const ERMORE_TEAMS=['자사몰MD팀','B2C이커머스팀','B2B유통팀'];
+const LINKMOM_TEAMS=['링크맘'];
+const ALL_TEAMS=[...ERMORE_TEAMS,...LINKMOM_TEAMS];
+// 에르모어 로즈핑크 / 링크맘 뮤트모브
+const EC='#C2446E';   // 에르모어 대표 로즈
+const LC='#7B5EA7';   // 링크맘 뮤트모브
+const TC={
+  '자사몰MD팀':'#C2446E',    // 찐 로즈
+  'B2C이커머스팀':'#E8759A',  // 미디엄 핑크
+  'B2B유통팀':'#F2AABF',     // 라이트 핑크
+  '링크맘':'#7B5EA7'          // 뮤트 모브
+};
+// 판관비 변동비: 보라 계열 (차분하게)
+const VIC=['#8B2500','#C2601A','#F0A96B','#FDD9B0'];
+// 고정비: 로즈 계열로 통일
+const FIC=['#7A3010','#A04010','#C2601A','#C2601A','#D4753A','#D4753A','#E88C5A','#F0A96B','#F5C9A0'];
+
+let MD={pl:'m',dt:'m',sl:'m',sg:'m',sa:'m'},CH={},SV='a',SLV='all';
+
+// ── 유틸 ──
+function fa(n){if(!n&&n!==0)return'0원';const a=Math.abs(n),s=n<0?'-':'';if(a>=1e8)return s+(a/1e8).toFixed(1)+'억';if(a>=1e7)return s+(a/1e7).toFixed(1)+'천만';if(a>=1e4)return s+Math.round(a/1e4).toLocaleString()+'만';if(a>=1)return s+Math.round(a).toLocaleString()+'원';return'0원';}
+function fd(n){const s=n>=0?'+':'-',a=Math.abs(n);if(a>=1e8)return s+(a/1e8).toFixed(1)+'억';if(a>=1e7)return s+(a/1e7).toFixed(1)+'천만';if(a>=1e4)return s+Math.round(a/1e4).toLocaleString()+'만';if(a>=1)return s+Math.round(a).toLocaleString()+'원';return'±0';}
+function pt(v,b){return b?(v/b*100).toFixed(1)+'%':'0%';}
+function cum(a){let t=0;return a.map(v=>t+=v);}
+function ga(a,m,i){return m==='c'?cum(a).slice(0,i+1):a.slice(0,i+1);}
+function gl(m,i){return m==='m'?ML.slice(0,i+1):ML.slice(0,i+1).map((_,j)=>ML[j]+'누계');}
+function gi(t){return parseInt(document.getElementById(t+'-s').value);}
+function mk(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart(document.getElementById(id),cfg);}
+function sumTeams(teams,field,i){return teams.reduce((s,n)=>s+G.seg[n][field][i],0);}
+function sumTeamsArr(teams,field){return ML.map((_,i)=>teams.reduce((s,n)=>s+G.seg[n][field][i],0));}
+
+const PLG={id:'pl',afterDatasetsDraw(c){const x=c.ctx;c.data.datasets.forEach(d=>{if(!d.sl)return;const m=c.getDatasetMeta(c.data.datasets.indexOf(d));if(m.type!=='line')return;m.data.forEach((p,i)=>{const v=d.data[i];if(v==null)return;const o=d.lo||0;x.save();x.font='600 10px sans-serif';x.fillStyle=d.borderColor||'#333';x.textAlign='center';x.textBaseline=o<0?'bottom':'top';x.fillText(v+'%',p.x,p.y+o);x.restore();});});}};
+Chart.register(PLG);
+
+document.getElementById('hm').textContent=`${ML[0]} ~ ${ML[G.N-1]} · ${G.N}개월 데이터`;
+['pl','dt','sl','sg','sa'].forEach(t=>{
+  const s=document.getElementById(t+'-s');
+  s.innerHTML=ML.map((m,i)=>`<option value="${i}"${i===G.N-1?' selected':''}>${m}</option>`).join('');
+});
+
+function sw(t,el){document.querySelectorAll('.tc').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.tab').forEach(e=>e.classList.remove('on'));document.getElementById('tab-'+t).classList.add('on');el.classList.add('on');}
+function sm(t,m){MD[t]=m;document.getElementById(t+'-m').classList.toggle('on',m==='m');document.getElementById(t+'-c').classList.toggle('on',m==='c');document.getElementById(t+'-s').style.display=m==='m'?'block':'none';rd(t);}
+function rd(t){({pl:rPL,dt:rDT,sl:rSL,sg:rSG,sa:rSA})[t]();}
+let ET='all', LT='all';
+function tga(row,cls){const o=row.classList.toggle('open');document.querySelectorAll('.'+cls).forEach(r=>r.classList.toggle('show',o));}
+function ssv(v,el){
+  SV=v;
+  document.querySelectorAll('.sb[id^="sv-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});
+  el.classList.add('on');
+  const subTabs=document.getElementById('sg-sub-tabs');
+  const lmTabs=document.getElementById('sg-lm-tabs');
+  if(v==='e'){subTabs.style.display='block';lmTabs.style.display='none';ET='all';}
+  else if(v==='l'){lmTabs.style.display='block';subTabs.style.display='none';LT='all';}
+  else{subTabs.style.display='none';lmTabs.style.display='none';ET='all';LT='all';}
+  document.querySelectorAll('.sb[id^="et-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});
+  const etAll=document.getElementById('et-all');if(etAll)etAll.classList.add('on');
+  document.querySelectorAll('.sb[id^="lt-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});
+  const ltAll=document.getElementById('lt-all');if(ltAll)ltAll.classList.add('on');
+  rSG();
+}
+function setET(v,el){
+  ET=v;
+  document.querySelectorAll('.sb[id^="et-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});
+  el.classList.add('on');
+  if(typeof v==='number'){const c=Object.values(TC)[v];el.style.borderColor=c;el.style.color=c;el.style.background=c+'18';}
+  rSG();
+}
+function setLT(v,el){
+  LT=v;
+  document.querySelectorAll('.sb[id^="lt-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});
+  el.classList.add('on');
+  if(typeof v==='number'){const c=TC['링크맘'];el.style.borderColor=c;el.style.color=c;el.style.background=c+'18';}
+  rSG();
+}
+function sslv(v,el){SLV=v;document.querySelectorAll('.sb[id^="slv-"]').forEach(b=>{b.classList.remove('on');b.style.cssText='';});el.classList.add('on');rSL();}
+
+// ── 손익보고 ──
+function rPL(){
+  const i=gi('pl');
+  // 월별 수치
+  const rv1=G.rev[i],cg1=G.cogs[i],gp1=G.gp[i],sg1=G.sga[i],op1=G.op[i];
+  const pv=i>0?i-1:0;
+  const cgR1=rv1?+(cg1/rv1*100).toFixed(1):0;
+  const cgRpv=G.rev[pv]?+(G.cogs[pv]/G.rev[pv]*100).toFixed(1):0;
+  // 누계 수치 (1월~선택월)
+  const cumRev=cum(G.rev)[i],cumCg=cum(G.cogs)[i],cumGp=cum(G.gp)[i],cumSg=cum(G.sga)[i],cumOp=cum(G.op)[i];
+  const cumCgR=cumRev?+(cumCg/cumRev*100).toFixed(1):0;
+  const cumLabel=i===0?'1월 누계':`1월~${ML[i]} 누계`;
+
+  // 월별 KPI 카드
+  document.getElementById('pl-k').innerHTML=`<div class="g5">${
+    [{l:'매출액',v:rv1,c:rv1-G.rev[pv]},{l:'매출이익',v:gp1,c:gp1-G.gp[pv]},{l:'판관비',v:sg1,c:sg1-G.sga[pv]},{l:'영업이익',v:op1,c:op1-G.op[pv]}]
+    .map(x=>`<div class="card"><div class="cl">${ML[i]} ${x.l}</div><div class="cv">${fa(x.v)}</div><div class="cs ${x.c>=0?'pos':'neg'}">${fd(x.c)} vs 전월</div></div>`).join('')
+  }<div class="card card-o"><div class="cl">${ML[i]} 원가율</div><div class="cv" style="color:var(--cogs)">${cgR1}%</div><div class="cs" style="color:var(--text2)">${i>0?(cgR1-cgRpv>=0?'+':'')+(cgR1-cgRpv).toFixed(1)+'%p vs 전월':'기준월'}</div></div></div>`;
+
+  // 누계 카드 (항상 표시)
+  document.getElementById('pl-cum').innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11px;font-weight:500;color:var(--text2)">
+      <span style="flex:1;height:.5px;background:var(--border)"></span>
+      <span>${cumLabel}</span>
+      <span style="flex:1;height:.5px;background:var(--border)"></span>
+    </div>
+    <div class="g5">${
+      [{l:'매출액',v:cumRev},{l:'매출이익',v:cumGp},{l:'판관비',v:cumSg},{l:'영업이익',v:cumOp}]
+      .map(x=>`<div class="card card-l" style="background:var(--bg3,#ececec);border-left:3px solid #bbb"><div class="cl">${x.l}</div><div class="cv" style="font-size:17px">${fa(x.v)}</div><div class="cs" style="color:var(--text2)">${pt(x.v,cumRev)}</div></div>`).join('')
+    }<div class="card card-l" style="background:var(--bg3,#ececec);border-left:3px solid #2E5FA3"><div class="cl">원가율</div><div class="cv" style="font-size:17px;color:var(--cogs)">${cumCgR}%</div><div class="cs" style="color:var(--text2)">누계기준</div></div></div>`;
+
+  // 차트는 항상 1월~선택월 전체 표시
+  const lb=ML.slice(0,i+1);
+  const rv=G.rev.slice(0,i+1),cg2=G.cogs.slice(0,i+1),gp=G.gp.slice(0,i+1),sg=G.sga.slice(0,i+1),op=G.op.slice(0,i+1);
+  document.getElementById('pl-t').textContent=`${ML[0]}${i>0?'~'+ML[i]:''} 손익 현황`;
+  // 차트 캔버스 복원
+  const plW=document.getElementById('pl-w');
+  if(!document.getElementById('plC')){plW.innerHTML='<canvas id="plC"></canvas>';}
+  plW.style.height='260px';
+  document.getElementById('pl-l').innerHTML=`<span class="li"><span class="ld" style="background:#1B3A6B"></span>매출액</span><span class="li"><span class="ld" style="background:#2E5FA3"></span>매출원가</span><span class="li"><span class="ld" style="background:#6B93C9"></span>판관비</span><span class="li"><span class="ld" style="background:#C2446E"></span>영업이익(선)</span>`;
+  mk('plC',{type:'bar',data:{labels:lb,datasets:[
+    {label:'매출액',  data:rv.map(v=>Math.round(v/1e6)), backgroundColor:'#1B3A6BCC',order:2},
+    {label:'매출원가',data:cg2.map(v=>Math.round(v/1e6)),backgroundColor:'#2E5FA3CC',order:2},
+    {label:'판관비',  data:sg.map(v=>Math.round(v/1e6)), backgroundColor:'#6B93C9CC',order:2},
+    {label:'영업이익',type:'line',data:op.map(v=>Math.round(v/1e6)),borderColor:'#C2446E',backgroundColor:'transparent',pointBackgroundColor:'#C2446E',pointRadius:5,tension:.4,order:1,borderWidth:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'억'},grid:{color:'rgba(0,0,0,.03)'}},x:{grid:{display:false}}}}});
+  const gpR=rv.map((r,j)=>r?+(gp[j]/r*100).toFixed(1):0),cgR2=rv.map((r,j)=>r?+(cg2[j]/r*100).toFixed(1):0),sgR=rv.map((r,j)=>r?+(sg[j]/r*100).toFixed(1):0),opR=rv.map((r,j)=>r?+(op[j]/r*100).toFixed(1):0);
+  document.getElementById('pl-rl').innerHTML=`<span class="li"><span class="ld" style="background:#0EA5E9"></span>매출이익률</span><span class="li"><span class="ld" style="background:#2E5FA3"></span>원가율</span><span class="li"><span class="ld" style="background:#6B93C9"></span>판관비율</span><span class="li"><span class="ld" style="background:#C2446E"></span>영업이익률</span>`;
+  document.getElementById('pl-ri').innerHTML=`<div class="cw" style="height:260px"><canvas id="plRC"></canvas></div>`;
+  mk('plRC',{type:'line',data:{labels:lb,datasets:[
+    {label:'원가율',    data:cgR2,borderColor:'#2E5FA3',backgroundColor:'rgba(46,95,163,.07)', fill:true,tension:.4,pointBackgroundColor:'#2E5FA3',pointRadius:5,sl:true,lo:-14},
+    {label:'판관비율',  data:sgR, borderColor:'#6B93C9',backgroundColor:'rgba(107,147,201,.05)',fill:true,tension:.4,pointBackgroundColor:'#6B93C9',pointRadius:5,sl:true,lo:-14},
+    {label:'매출이익률',data:gpR, borderColor:'#0EA5E9',backgroundColor:'rgba(14,165,233,.06)',fill:true,tension:.4,pointBackgroundColor:'#0EA5E9',pointRadius:5,sl:true,lo:14},
+    {label:'영업이익률',data:opR, borderColor:'#C2446E',backgroundColor:'transparent',fill:false,tension:.4,pointBackgroundColor:'#C2446E',pointRadius:5,sl:true,lo:14,borderDash:[5,4]}
+  ]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:24,bottom:20}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}}},scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.03)'}},x:{grid:{display:false}}}}});
+}
+
+// ── 손익상세 (전월 비교 포함 가로 테이블) ──
+function rDT(){
+  const m=MD.dt,i=gi('dt'),isM=m==='m';
+  const allLb=isM?ML:ML.slice(0,i+1).map((_,j)=>ML[j]+'누계');
+  function gvAll(a){return isM?a:cum(a).slice(0,i+1);}
+  const rv=gvAll(G.rev),cg=gvAll(G.cogs),gp=gvAll(G.gp),sg=gvAll(G.sga),vv=gvAll(G.var),fv=gvAll(G.fix),op=gvAll(G.op);
+  const curIdx=isM?i:allLb.length-1;
+  const pv=curIdx>0?curIdx-1:0;
+
+  // ── B: KPI 카드 ──
+  const kpis=[
+    {l:'매출액',  v:rv[curIdx], c:rv[curIdx]-rv[pv],   color:'#1B3A6B'},
+    {l:'매출이익', v:gp[curIdx], c:gp[curIdx]-gp[pv],  color:'#2E5FA3'},
+    {l:'판관비',  v:sg[curIdx], c:sg[curIdx]-sg[pv],   color:'#6B93C9'},
+    {l:'영업이익', v:op[curIdx], c:op[curIdx]-op[pv],  color:op[curIdx]>=0?'#C2446E':'#B85450'},
+    {l:'원가율',  v:null, raw:rv[curIdx]?(cg[curIdx]/rv[curIdx]*100).toFixed(1)+'%':'0%',
+      sub:curIdx>0?`${((cg[curIdx]/rv[curIdx])-(cg[pv]/rv[pv])>=0?'+':'')}${((cg[curIdx]/rv[curIdx]-cg[pv]/rv[pv])*100).toFixed(1)}%p vs 전월`:'기준월',color:'#2E5FA3'}
+  ];
+  document.getElementById('dt-k').innerHTML=`<div class="g5">${kpis.map(k=>`
+    <div class="card card-l" style="border-left:3px solid ${k.color}">
+      <div class="cl">${allLb[curIdx]} ${k.l}</div>
+      <div class="cv" style="color:${k.color}">${k.v!==null?fa(k.v):k.raw}</div>
+      ${k.v!==null&&curIdx>0?`<div class="cs ${k.c>=0?'pos':'neg'}">${fd(k.c)} vs 전월</div>`:`<div class="cs" style="color:var(--text2)">${k.sub||''}</div>`}
+    </div>`).join('')}</div>`;
+
+  // ── 스파크라인 SVG 생성 ──
+  function spark(vals,color,isOp){
+    if(vals.length<2) return '<td style="width:80px"></td>';
+    const mn=Math.min(...vals),mx=Math.max(...vals),rng=mx-mn||1;
+    const W=80,H=28,pad=3;
+    const pts=vals.map((v,j)=>{
+      const x=pad+j*(W-pad*2)/(vals.length-1);
+      const y=H-pad-(v-mn)/(rng)*(H-pad*2);
+      return`${x},${y}`;
+    }).join(' ');
+    const last=vals[vals.length-1];
+    const lx=pad+(vals.length-1)*(W-pad*2)/(vals.length-1);
+    const ly=H-pad-(last-mn)/(rng)*(H-pad*2);
+    const col=isOp?(last>=0?'#555555':'#B85450'):color;
+    return`<td style="width:80px;padding:0 4px">
+      <svg width="${W}" height="${H}" style="display:block">
+        <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="${lx}" cy="${ly}" r="2.5" fill="${col}"/>
+      </svg></td>`;
+  }
+
+  // ── C+D: 행 색상 강조 + 스파크라인 ──
+  function thStyle(j){return j===curIdx?'background:#f0f0f8;font-weight:600;':'';}
+  function tdStyle(j,col=''){return`${j===curIdx?'background:#f5f5fb;':''};${col}`;}
+
+  // 행 스타일 정의
+  const ROW_STYLES={
+    '매출액':    {bg:'#F8F9FC',color:'#1B3A6B',bold:true,sparkColor:'#1B3A6B'},
+    '매출원가':  {bg:'',       color:'',        bold:false,sparkColor:'#2E5FA3'},
+    '매출이익':  {bg:'#F0F4FA',color:'#2E5FA3', bold:true, sparkColor:'#2E5FA3'},
+    '판관비':    {bg:'',       color:'',        bold:false,sparkColor:'#6B93C9'},
+    '영업이익':  {bg:'#FDF5F7',color:'',        bold:true, sparkColor:'#C2446E',isOp:true},
+  };
+
+  function mR(n,vals,base,full){
+    const rs=ROW_STYLES[n]||{};
+    const bgStyle=rs.bg?`background:${rs.bg}!important`:'';
+    return`<tr style="${bgStyle}">
+      <td style="font-weight:${rs.bold?'600':'400'};color:${rs.color||'var(--text)'}${rs.bg?';background:'+rs.bg:''}">${n}</td>
+      ${vals.map((val,j)=>{
+        const sub=base?`<br><span style="font-size:10px;color:var(--text2)">${pt(val,base[j])}</span>`:'';
+        const col=rs.isOp?(val>=0?'color:#555555':'color:#B85450'):(rs.color?'color:'+rs.color:'');
+        return`<td style="${tdStyle(j)};${col}${rs.bg?';background:'+(j===curIdx?'#f0eef8':rs.bg):''}">${fa(val)}${sub}</td>`;
+      }).join('')}
+      ${spark(full||vals,rs.sparkColor||'#888',rs.isOp)}
+    </tr>`;
+  }
+  function aR(n,vals,base,gc){
+    return`<tr class="acc" onclick="tga(this,'${gc}')">
+      <td><span class="ar">▶</span>${n}</td>
+      ${vals.map((val,j)=>`<td style="${tdStyle(j)}">${fa(val)}<br><span style="font-size:10px;color:var(--text2)">${pt(val,base[j])}</span></td>`).join('')}
+      ${spark(isM?vals:vals,'#888',false)}
+    </tr>`;
+  }
+  function sR(items,base,gc){
+    return Object.entries(items).map(([nm,arr])=>{
+      const v=gvAll(arr);
+      return`<tr class="sub ${gc}">
+        <td>∙ ${nm}</td>
+        ${v.map((val,j)=>`<td style="${tdStyle(j)}">${fa(val)}<br><span style="font-size:10px;color:var(--text2)">${pt(val,base[j])}</span></td>`).join('')}
+        <td></td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('dt-tb').innerHTML=`<table>
+    <thead><tr>
+      <th style="min-width:130px">구분</th>
+      ${allLb.map((l,j)=>`<th style="${thStyle(j)}">${l}</th>`).join('')}
+      <th style="width:80px;color:var(--text2);font-weight:400">추이</th>
+    </tr></thead>
+    <tbody>
+      ${mR('매출액',rv,null,G.rev)}
+      ${mR('매출원가',cg,rv,G.cogs)}
+      ${mR('매출이익',gp,rv,G.gp)}
+      ${mR('판관비',sg,rv,G.sga)}
+      ${aR('　변동비',vv,rv,'gv')}${sR(G.varI,rv,'gv')}
+      ${aR('　고정비',fv,rv,'gf')}${sR(G.fixI,rv,'gf')}
+      ${mR('영업이익',op,rv,G.op)}
+    </tbody>
+  </table>`;
+}
+
+// ── 매출유형별 ──
+function rSL(){
+  const i=gi('sl');
+  const teams = SLV==='e'?ERMORE_TEAMS : SLV==='l'?LINKMOM_TEAMS : ALL_TEAMS;
+  const types = ['제품매출','상품매출','특정매출'];
+  // 뷰에 따라 색상 팔레트 선택
+  const TC_SL = SLV==='e'
+    ? ['#C2446E','#E8759A','#F2AABF']   // 에르모어 핑크 계열
+    : SLV==='l'
+    ? ['#7B5EA7','#A68DC4','#C2A8D4']   // 링크맘 보라 계열
+    : ['#6B7280','#7BA7C4','#B0C4D8'];  // 전체 그레이+옅은블루
+  const TC_SL_BAR = SLV==='e'
+    ? ['#C2446E','#E8759A','#F2AABF']
+    : SLV==='l'
+    ? ['#7B5EA7','#A68DC4','#C2A8D4']
+    : ['#6B7280','#7BA7C4','#B0C4D8'];
+  const viewLabel=SLV==='e'?'에르모어':SLV==='l'?'링크맘':'전체';
+
+  // 당월 수치
+  const pieData=types.map(t=>teams.reduce((s,n)=>s+(G.salesDetail[t][n][i]||0),0));
+  const totalCur=pieData.reduce((s,v)=>s+v,0);
+  const pv=i>0?i-1:0;
+  const pieDataPv=types.map(t=>teams.reduce((s,n)=>s+(G.salesDetail[t][n][pv]||0),0));
+  const totalPv=pieDataPv.reduce((s,v)=>s+v,0);
+
+  // 누계 수치
+  const cumData=types.map(t=>teams.reduce((s,n)=>s+cum(G.salesDetail[t][n])[i],0));
+  const totalCum=cumData.reduce((s,v)=>s+v,0);
+  const cumLabel=i===0?'1월 누계':`1월~${ML[i]} 누계`;
+
+  // 당월 KPI 카드
+  document.getElementById('sl-k').innerHTML=`<div class="g4">${
+    types.map((t,ti)=>{const v=pieData[ti],pv2=pieDataPv[ti];return`<div class="card" class="card-l" style="border-left:3px solid ${TC_SL[ti]}"><div class="cl">${ML[i]} ${t}</div><div class="cv" style="font-size:16px">${fa(v)}</div><div class="cs ${v-pv2>=0?'pos':'neg'}">${fd(v-pv2)} vs 전월</div></div>`;}).join('')
+  }<div class="card" class="card-l" style="border-left:3px solid #888"><div class="cl">${ML[i]} 총매출</div><div class="cv" style="font-size:16px">${fa(totalCur)}</div><div class="cs ${totalCur-totalPv>=0?'pos':'neg'}">${fd(totalCur-totalPv)} vs 전월</div></div></div>`;
+
+  // 누계 카드
+  document.getElementById('sl-cum').innerHTML=`
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11px;font-weight:500;color:var(--text2)">
+      <span style="flex:1;height:.5px;background:var(--border)"></span>
+      <span>${cumLabel}</span>
+      <span style="flex:1;height:.5px;background:var(--border)"></span>
+    </div>
+    <div class="g4">${
+      types.map((t,ti)=>`<div class="card" class="card-l" style="background:var(--bg3,#ececec);border-left:3px solid ${TC_SL[ti]}"><div class="cl">${t}</div><div class="cv" style="font-size:16px">${fa(cumData[ti])}</div><div class="cs" style="color:var(--text2)">${totalCum?(cumData[ti]/totalCum*100).toFixed(1):0}%</div></div>`).join('')
+    }<div class="card" class="card-l" style="background:var(--bg3,#ececec);border-left:3px solid #888"><div class="cl">총매출</div><div class="cv" style="font-size:16px">${fa(totalCum)}</div><div class="cs" style="color:var(--text2)">누계기준</div></div></div>`;
+
+  // 도넛 — 당월
+  document.getElementById('sl-pt').textContent=`${viewLabel} ${ML[i]} 매출유형 구성`;
+  document.getElementById('sl-dv').textContent=fa(totalCur);
+  document.getElementById('sl-lg').innerHTML=types.map((t,ti)=>`<span class="li"><span class="ld" style="background:${TC_SL[ti]}"></span>${t}</span>`).join('');
+  mk('slPie',{type:'doughnut',data:{labels:types,datasets:[{data:pieData,backgroundColor:TC_SL,borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${fa(c.raw)} (${totalCur?(c.raw/totalCur*100).toFixed(1):0}%)`}}}}});
+
+  // 막대 — 1월~선택월 월별 추이
+  const lb=ML.slice(0,i+1);
+  document.getElementById('sl-bt').textContent=`${viewLabel} 매출유형별 월별 추이`;
+  document.getElementById('sl-blg').innerHTML=types.map((t,ti)=>`<span class="li"><span class="ld" style="background:${TC_SL_BAR[ti]}"></span>${t}</span>`).join('');
+  const ds=types.map((t,ti)=>({
+    label:t,
+    data:lb.map((_,li)=>Math.round(teams.reduce((s,n)=>s+(G.salesDetail[t][n][li]||0),0)/1e6)),
+    backgroundColor:TC_SL_BAR[ti]+'cc',stack:'s'
+  }));
+  mk('slBar',{type:'bar',data:{labels:lb,datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'억'},grid:{color:'rgba(0,0,0,.04)'}}}}});
+
+  // 테이블: 월별 실제 수치 (1월~선택월), 선택월 강조
+  const allLb2=ML.slice(0,i+1);
+  function thS(j){return j===i?'background:#f0f0f0;font-weight:600;':'';}
+  function tdS(j){return j===i?'background:#f5f5f5;':'';}
+
+  let h=`<table><thead><tr><th style="min-width:140px">구분</th>${allLb2.map((l,j)=>`<th style="${thS(j)}">${l}</th>`).join('')}</tr></thead><tbody>`;
+
+  types.forEach((type,ti)=>{
+    const typeTotal=allLb2.map((_,j)=>teams.reduce((s,n)=>(G.salesDetail[type][n][j]||0)+s,0));
+    h+=`<tr class="acc bold" onclick="tga(this,'sl-${ti}')"><td><span class="ar">▶</span><span class="badge" style="background:${TC_SL[ti]}22;color:${TC_SL[ti]}">${type}</span></td>${typeTotal.map((v,j)=>`<td style="${tdS(j)}">${fa(v)}</td>`).join('')}</tr>`;
+    if(SLV!=='l'){
+      const eTotal=allLb2.map((_,j)=>ERMORE_TEAMS.reduce((s,n)=>s+(G.salesDetail[type][n][j]||0),0));
+      h+=`<tr class="sub sl-${ti}"><td style="padding-left:16px;font-weight:500"><span class="badge-e badge">에르모어</span></td>${eTotal.map((v,j)=>`<td style="${tdS(j)};font-weight:500">${fa(v)}</td>`).join('')}</tr>`;
+      ERMORE_TEAMS.forEach(n=>{
+        const arr=allLb2.map((_,j)=>G.salesDetail[type][n][j]||0);
+        h+=`<tr class="sub sl-${ti} subsub"><td>∙ ${n}</td>${arr.map((v,j)=>`<td style="${tdS(j)}">${fa(v)}</td>`).join('')}</tr>`;
+      });
+    }
+    if(SLV!=='e'){
+      const lTotal=allLb2.map((_,j)=>G.salesDetail[type]['링크맘'][j]||0);
+      h+=`<tr class="sub sl-${ti}"><td style="padding-left:16px;font-weight:500"><span class="badge-l badge">링크맘</span></td>${lTotal.map((v,j)=>`<td style="${tdS(j)};font-weight:500">${fa(v)}</td>`).join('')}</tr>`;
+    }
+  });
+
+  const grandTotal=allLb2.map((_,j)=>types.reduce((s,t)=>s+teams.reduce((s2,n)=>s2+(G.salesDetail[t][n][j]||0),0),0));
+  h+=`<tr class="bold"><td>합계</td>${grandTotal.map((v,j)=>`<td style="${tdS(j)}">${fa(v)}</td>`).join('')}</tr>`;
+  h+='</tbody></table>';
+  document.getElementById('sl-tb').innerHTML=h;
+}
+
+// ── 사업부팀별 ──
+function rSG(){
+  const i=gi('sg');
+  // 에르모어 팀 드릴다운
+  const isEDet=SV==='e'&&typeof ET==='number';
+  // 링크맘 드릴다운
+  const isLDet=SV==='l'&&typeof LT==='number';
+  const isDet=isEDet||isLDet;
+  document.getElementById('sg-main').style.display=isDet?'none':'';
+  document.getElementById('sg-det').style.display=isDet?'':'none';
+  if(isEDet) rSGDet(ET,i);
+  else if(isLDet) rSGDetLM(i);
+  else rSGMain(SV,i);
+}
+
+function rSGMain(view,i){
+  const teams=view==='e'?ERMORE_TEAMS:view==='l'?LINKMOM_TEAMS:ALL_TEAMS;
+  const lb=ML.slice(0,i+1);
+  const pv=i>0?i-1:0;
+  const cumLabel=i===0?'1월 누계':`1월~${ML[i]} 누계`;
+  const pieColors=teams.map(n=>TC[n]);
+
+  // ── 당월 KPI ──
+  if(view==='a'){
+    const eRev=G.seg[Object.keys(G.seg)[0]].rev.map((_,j)=>ERMORE_TEAMS.reduce((s,n)=>s+G.seg[n].rev[j],0));
+    const eCon=G.seg[Object.keys(G.seg)[0]].rev.map((_,j)=>ERMORE_TEAMS.reduce((s,n)=>s+G.seg[n].contrib[j],0));
+    const lRev=G.seg['링크맘'].rev, lCon=G.seg['링크맘'].contrib;
+    const eRevV=eRev[i], eConV=eCon[i], lRevV=lRev[i], lConV=lCon[i];
+    const eRevP=eRev[pv], lRevP=lRev[pv];
+    document.getElementById('sg-kpi-area').innerHTML=`
+      <div class="sec-hdr"><span class="badge-e badge">에르모어</span></div>
+      <div class="g4" style="margin-bottom:10px">
+        <div class="card card-l" style="background:#FDF0F4;border-left:3px solid ${EC}"><div class="cl">${ML[i]} 에르모어 합계</div><div class="cv" style="font-size:15px">${fa(eRevV)}</div><div class="cs ${eRevV-eRevP>=0?'pos':'neg'}">${fd(eRevV-eRevP)} vs 전월</div></div>
+        ${ERMORE_TEAMS.map(n=>{
+          const rv=G.seg[n].rev[i],cv=G.seg[n].contrib[i],rvp=G.seg[n].rev[pv];
+          return`<div class="card card-l" style="border-left:3px solid ${TC[n]}"><div class="cl">${ML[i]} ${n}</div><div class="cv" style="font-size:15px">${fa(rv)}</div><div class="cs ${rv-rvp>=0?'pos':'neg'}">${fd(rv-rvp)} vs 전월</div></div>`;
+        }).join('')}
+      </div>
+      <div class="sec-hdr"><span class="badge-l badge">링크맘</span></div>
+      <div class="g4" style="margin-bottom:10px">
+        <div class="card card-l" style="background:#F5F0FF;border-left:3px solid ${LC}"><div class="cl">${ML[i]} 링크맘</div><div class="cv" style="font-size:15px">${fa(lRevV)}</div><div class="cs ${lRevV-lRevP>=0?'pos':'neg'}">${fd(lRevV-lRevP)} vs 전월</div></div>
+      </div>`;
+    // 누계 카드
+    const eCumRev=cum(eRev)[i], eCumCon=cum(eCon)[i];
+    const lCumRev=cum(lRev)[i], lCumCon=cum(lCon)[i];
+    document.getElementById('sg-cum').innerHTML=`
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11px;font-weight:500;color:var(--text2)">
+        <span style="flex:1;height:.5px;background:var(--border)"></span><span>${cumLabel}</span><span style="flex:1;height:.5px;background:var(--border)"></span>
+      </div>
+      <div class="sec-hdr" style="margin-top:4px"><span class="badge-e badge">에르모어</span></div>
+      <div class="g4" style="margin-bottom:10px">
+        <div class="card card-l" style="background:#FDE8F0;border-left:3px solid ${EC}"><div class="cl">에르모어 합계</div><div class="cv" style="font-size:15px">${fa(eCumRev)}</div><div class="cs" style="color:var(--text2)">공헌 ${eCumRev?(eCumCon/eCumRev*100).toFixed(1):0}%</div></div>
+        ${ERMORE_TEAMS.map(n=>{
+          const rv=cum(G.seg[n].rev)[i],cv=cum(G.seg[n].contrib)[i];
+          return`<div class="card card-l" style="background:var(--bg3,#ececec);border-left:3px solid ${TC[n]}88"><div class="cl">${n}</div><div class="cv" style="font-size:15px">${fa(rv)}</div><div class="cs" style="color:var(--text2)">공헌 ${rv?(cv/rv*100).toFixed(1):0}%</div></div>`;
+        }).join('')}
+      </div>
+      <div class="sec-hdr"><span class="badge-l badge">링크맘</span></div>
+      <div class="g4">
+        <div class="card card-l" style="background:#EDE8FF;border-left:3px solid ${LC}"><div class="cl">링크맘</div><div class="cv" style="font-size:15px">${fa(lCumRev)}</div><div class="cs" style="color:var(--text2)">공헌 ${lCumRev?(lCumCon/lCumRev*100).toFixed(1):0}%</div></div>
+      </div>`;
+  } else {
+    // 에르모어 or 링크맘 단독 뷰
+    document.getElementById('sg-kpi-area').innerHTML=`<div class="g4" style="margin-bottom:10px">${teams.map(n=>{
+      const rv=G.seg[n].rev[i],cv=G.seg[n].contrib[i],rvp=G.seg[n].rev[pv];
+      return`<div class="card card-l" style="border-left:3px solid ${TC[n]}"><div class="cl">${ML[i]} ${n}</div><div class="cv" style="font-size:15px">${fa(rv)}</div><div class="cs ${rv-rvp>=0?'pos':'neg'}">${fd(rv-rvp)} vs 전월</div></div>`;
+    }).join('')}</div>`;
+    document.getElementById('sg-cum').innerHTML=`
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:11px;font-weight:500;color:var(--text2)">
+        <span style="flex:1;height:.5px;background:var(--border)"></span><span>${cumLabel}</span><span style="flex:1;height:.5px;background:var(--border)"></span>
+      </div>
+      <div class="g4">${teams.map(n=>{
+        const rv=cum(G.seg[n].rev)[i],cv=cum(G.seg[n].contrib)[i];
+        return`<div class="card card-l" style="background:var(--bg3,#ececec);border-left:3px solid ${TC[n]}88"><div class="cl">${n}</div><div class="cv" style="font-size:15px">${fa(rv)}</div><div class="cs" style="color:var(--text2)">공헌 ${rv?(cv/rv*100).toFixed(1):0}%</div></div>`;
+      }).join('')}</div>`;
+  }
+
+  // ── 도넛 (당월) ──
+  const rvsCur=teams.map(n=>G.seg[n].rev[i]);
+  const cosCur=teams.map(n=>G.seg[n].contrib[i]);
+  const tRCur=rvsCur.reduce((s,v)=>s+v,0);
+  const tCCur=cosCur.reduce((s,v)=>s+v,0);
+  document.getElementById('sg-ct').textContent=`${ML[i]} 공헌이익률`;
+  document.getElementById('sg-dv').textContent=fa(tRCur);
+  document.getElementById('sg-ds').textContent=`공헌 ${tRCur?(tCCur/tRCur*100).toFixed(1):0}%`;
+  mk('sgPie',{type:'doughnut',data:{labels:teams,datasets:[{data:rvsCur,backgroundColor:pieColors,borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${fa(c.raw)} (${tRCur?(c.raw/tRCur*100).toFixed(1):0}%)`}}}}});
+
+  // ── 막대: 공헌이익률 추이 ──
+  mk('sgBar',{type:'line',data:{labels:lb,datasets:teams.map(n=>({
+    label:n,
+    data:lb.map((_,li)=>{const r=G.seg[n].rev[li];return r?+(G.seg[n].contrib[li]/r*100).toFixed(1):0;}),
+    borderColor:TC[n],backgroundColor:'transparent',tension:.4,pointBackgroundColor:TC[n],pointRadius:4
+  }))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+
+  // ── 테이블: 월별 실제 수치 ──
+  function thS(j){return j===i?'background:#f0f0f0;font-weight:600;':'';}
+  function tdS(j){return j===i?'background:#f5f5f5;':'';}
+  // 컬럼: 매출/원가/변동비/공헌이익/고정비/영업이익 (당월 + 누계)
+  const CK=['rev','cogs','var','contrib','fix','op'];
+  const CN=['매출','원가','변동비','공헌이익','고정비','영업이익'];
+  const posKeys=new Set(['contrib','op']);
+
+  function cellVal(n,k,j,isCum){
+    const arr=G.seg[n][k];
+    if(!arr||!arr.length) return 0;
+    return isCum?cum(arr)[j]:(arr[j]||0);
+  }
+  function sumTeamsCols(teamList,k,j,isCum){
+    return teamList.reduce((s,n)=>s+cellVal(n,k,j,isCum),0);
+  }
+  function pctStr(v,rv){return`<br><span style="font-size:10px;color:var(--text2)">${rv?(v/rv*100).toFixed(1):0}%</span>`;}
+  function cell(v,rv,k,ts){
+    const color=posKeys.has(k)?(v>=0?'color:#555555':'color:#B85450'):'';
+    const p=k!=='rev'?pctStr(v,rv):'';
+    return`<td style="${ts};${color}">${fa(v)}${p}</td>`;
+  }
+  function rowOf(n,j){
+    const curRv=G.seg[n].rev[j]||1;
+    const cumRv=cum(G.seg[n].rev)[j]||1;
+    // 당월 6셀 + 누계 6셀
+    return CK.map(k=>cell(cellVal(n,k,j,false),curRv,k,'background:#f8fbff')).join('')+
+           CK.map(k=>cell(cellVal(n,k,j,true),cumRv,k,'')).join('');
+  }
+  function sumRow(teamList,j,ts1,ts2){
+    const curRv=teamList.reduce((s,n)=>s+(G.seg[n].rev[j]||0),0)||1;
+    const cumRv=cum(teamList.map(n=>G.seg[n].rev).reduce((a,b)=>a.map((v,k)=>v+b[k])))[j]||1;
+    return CK.map(k=>cell(sumTeamsCols(teamList,k,j,false),curRv,k,ts1)).join('')+
+           CK.map(k=>cell(sumTeamsCols(teamList,k,j,true),cumRv,k,ts2)).join('');
+  }
+
+  const cumLb=i===0?'1월 누계':`1월~${ML[i]} 누계`;
+  let h=`<table><thead>
+    <tr>
+      <th rowspan="2" style="min-width:110px">사업부</th>
+      <th colspan="6" style="text-align:center;background:#f0f5ff;border-bottom:.5px solid var(--border)">${ML[i]} 당월</th>
+      <th colspan="6" style="text-align:center;border-bottom:.5px solid var(--border)">${cumLb}</th>
+    </tr>
+    <tr>
+      ${CN.map(c=>`<th style="background:#f0f5ff">${c}</th>`).join('')}
+      ${CN.map(c=>`<th>${c}</th>`).join('')}
+    </tr>
+  </thead><tbody>`;
+
+  if(view==='a'){
+    h+=`<tr class="section"><td colspan="13"><span class="badge-e badge">에르모어</span></td></tr>`;
+    ERMORE_TEAMS.forEach(n=>{
+      h+=`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${TC[n]};margin-right:6px"></span>${n}</td>${rowOf(n,i)}</tr>`;
+    });
+    h+=`<tr class="bold"><td>에르모어 합계</td>${sumRow(ERMORE_TEAMS,i,'background:#f0f5ff','')}</tr>`;
+    h+=`<tr class="section"><td colspan="13"><span class="badge-l badge">링크맘</span></td></tr>`;
+    h+=`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${TC['링크맘']};margin-right:6px"></span>링크맘</td>${rowOf('링크맘',i)}</tr>`;
+    h+=`<tr class="bold"><td>전체 합계</td>${sumRow(ALL_TEAMS,i,'background:#f0f5ff','')}</tr>`;
+  } else {
+    teams.forEach(n=>{
+      h+=`<tr><td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${TC[n]};margin-right:6px"></span>${n}</td>${rowOf(n,i)}</tr>`;
+    });
+    h+=`<tr class="bold"><td>합계</td>${sumRow(teams,i,'background:#f0f5ff','')}</tr>`;
+  }
+  h+='</tbody></table>';
+  document.getElementById('sg-tb').innerHTML=h;
+
+  // ── 변동비 추이 (팀별 합산 비중으로 안분) ──
+  const varItemNames=Object.keys(G.varI);
+  // 해당 뷰 팀들의 변동비 합계 비중 계산
+  const teamVarTotals=ML.map((_,j)=>teams.reduce((s,n)=>(G.seg[n].var?G.seg[n].var[j]:0)+s,0));
+  const allVarTotals=ML.map((_,j)=>ALL_TEAMS.reduce((s,n)=>(G.seg[n].var?G.seg[n].var[j]:0)+s,0));
+  const varRatios=ML.map((_,j)=>allVarTotals[j]?teamVarTotals[j]/allVarTotals[j]:0);
+  const teamVarItems=varItemNames.map(k=>G.varI[k].map((v,j)=>Math.round(v*varRatios[j])));
+
+  const viewLabel2=view==='e'?'에르모어':view==='l'?'링크맘':'전체';
+  document.getElementById('sg-var-t').textContent=`${viewLabel2} 변동비 구성요소`;
+
+  // 뷰별 색상
+  const varCols=view==='e'
+    ?[EC+'FF',EC+'CC',EC+'88',EC+'44']
+    :view==='l'
+    ?[LC+'FF',LC+'CC',LC+'88',LC+'44']
+    :['#8B2500','#C2601A','#F0A96B','#FDD9B0'];
+
+  document.getElementById('sg-var-lg').innerHTML=
+    varItemNames.map((k,i2)=>`<span class="li"><span class="ld" style="background:${varCols[i2%4]}"></span>${k}</span>`).join('');
+
+  // 당월 항목별 바 차트
+  mk('sgVarBar',{type:'bar',data:{
+    labels:varItemNames,
+    datasets:[{data:teamVarItems.map(arr=>Math.round(arr[i]/1e6*10)/10),backgroundColor:varCols,borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${fa(c.raw*1e6)}`}}},
+    scales:{y:{ticks:{callback:v=>fa(v*1e6)},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}}});
+
+  // 월별 누적 추이
+  mk('sgVarTr',{type:'bar',data:{
+    labels:lb,
+    datasets:varItemNames.map((k,i2)=>({
+      label:k,
+      data:teamVarItems[i2].slice(0,lb.length).map(v=>Math.round(v/1e6)),
+      backgroundColor:varCols[i2%4],
+      stack:'s'
+    }))
+  },options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:v=>fa(v*1e6)},grid:{color:'rgba(0,0,0,.04)'}}}}});
+}
+
+function rSGDet(si,i){
+  const name=ERMORE_TEAMS[si],color=TC[name],sd=G.seg[name];
+  rSGDetCommon(name,color,sd,i);
+}
+
+function rSGDetLM(i){
+  const name='링크맘',color=TC['링크맘'],sd=G.seg['링크맘'];
+  rSGDetCommon(name,color,sd,i);
+}
+
+function rSGDetCommon(name,color,sd,ci){
+  const pv=ci>0?ci-1:0;
+  const rv=sd.rev,cg=sd.cogs,cb=sd.contrib;
+  const cbR=rv.map((r,j)=>r?+(cb[j]/r*100).toFixed(1):0),cgR=rv.map((r,j)=>r?+(cg[j]/r*100).toFixed(1):0);
+  document.getElementById('sd-k').innerHTML=[
+    {l:'매출',   v:rv[ci], c:rv[ci]-rv[pv]},
+    {l:'원가',   v:cg[ci], c:cg[ci]-cg[pv]},
+    {l:'공헌이익',v:cb[ci], c:cb[ci]-cb[pv]},
+    {l:'공헌이익률',v:null,raw:cbR[ci]+'%',sub:`원가율 ${cgR[ci]}%`}
+  ].map(x=>`<div class="card" style="${x.l==='공헌이익률'?'':'border-top:3px solid '+color}">
+    <div class="cl">${x.l}</div>
+    <div class="cv" style="font-size:${x.v===null?'20px':'18px'};color:${x.l==='공헌이익률'?(parseFloat(x.raw)>=0?'#555555':'#B85450'):'var(--text)'}">
+      ${x.v!==null?fa(x.v):x.raw}
+    </div>
+    ${x.v!==null&&ci>0?`<div class="cs ${x.c>=0?'pos':'neg'}">${fd(x.c)} vs 전월</div>`:`<div class="cs" style="color:var(--text2)">${x.sub||''}</div>`}
+  </div>`).join('');
+  document.getElementById('sd-t').textContent=`${name} — 월별 매출/원가/공헌이익`;
+
+  // 팀 색상 기반 — 매출(진), 원가(중), 공헌이익(그레이)
+  const colorMid = color+'99';
+
+  mk('sdBar',{type:'bar',data:{labels:ML,datasets:[
+    {label:'매출',    data:rv.map(v=>Math.round(v/1e6)),backgroundColor:color+'BB',borderColor:color,borderWidth:1.5,borderRadius:3},
+    {label:'원가',    data:cg.map(v=>Math.round(v/1e6)),backgroundColor:colorMid,borderColor:color+'CC',borderWidth:1.5,borderRadius:3},
+    {label:'공헌이익',data:cb.map(v=>Math.round(v/1e6)),backgroundColor:'#88888844',borderColor:'#888888',borderWidth:1.5,borderRadius:3}
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fa(c.raw*1e6)}`}}},
+    scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+'억'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+
+  mk('sdLine',{type:'line',data:{labels:ML,datasets:[
+    {label:'원가율',    data:cgR,borderColor:color,backgroundColor:color+'18',fill:true,tension:.4,pointBackgroundColor:color,pointRadius:5,sl:true,lo:-14},
+    {label:'공헌이익률',data:cbR,borderColor:'#888888',backgroundColor:'rgba(136,136,136,.08)',fill:true,tension:.4,pointBackgroundColor:'#888888',pointRadius:5,sl:true,lo:12}
+  ]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:22,bottom:18}},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}}},
+    scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});
+  // 레전드 업데이트
+  document.getElementById('sd-bar-lg').innerHTML=
+    `<span class="li"><span class="ld" style="background:${color}BB"></span>매출</span>`+
+    `<span class="li"><span class="ld" style="background:${color}99"></span>원가</span>`+
+    `<span class="li"><span class="ld" style="background:#888888"></span>공헌이익</span>`;
+  document.getElementById('sd-line-lg').innerHTML=
+    `<span class="li"><span class="ld" style="background:${color}"></span>원가율</span>`+
+    `<span class="li"><span class="ld" style="background:#888888"></span>공헌이익률</span>`;
+
+  const tRA=ALL_TEAMS.reduce((s,n)=>s+G.seg[n].rev[ci],0);
+  document.getElementById('sd-pt').textContent=`${ML[ci]} 전체 매출 중 비중`;
+  document.getElementById('sd-pv').textContent=fa(rv[ci]);
+  mk('sdPie',{type:'doughnut',data:{labels:[name,'기타'],datasets:[{data:[rv[ci],tRA-rv[ci]],backgroundColor:[color,'#E5E5E5'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${fa(c.raw)} (${tRA?(c.raw/tRA*100).toFixed(1):0}%)`}}}}});
+
+  // ── 변동비 구성요소 ──
+  // 전사 varI에서 팀별 비중으로 안분 (segment 데이터에 항목별 없으므로 전사 항목 × 팀비중)
+  const teamVarTotal=G.seg[name].var||[];
+  const totalVarArr=ML.map((_,j)=>ALL_TEAMS.reduce((s,n)=>(G.seg[n].var?G.seg[n].var[j]:0)+s,0));
+  const varRatio=ML.map((_,j)=>totalVarArr[j]?teamVarTotal[j]/totalVarArr[j]:0);
+  const varItemNames=Object.keys(G.varI);
+  // 팀 변동비 항목 = 전사 항목 × 팀비중
+  const teamVarItems=varItemNames.map(k=>G.varI[k].map((v,j)=>Math.round(v*varRatio[j])));
+
+  document.getElementById('sd-var-t').textContent=`${name} — 변동비 구성요소`;
+  // 항목별 색상 (팀 색 계열 4단계)
+  const varItemCols=['#8B2500','#C2601A','#F0A96B','#FDD9B0'];
+  document.getElementById('sd-var-lg').innerHTML=
+    varItemNames.map((k,i2)=>`<span class="li"><span class="ld" style="background:${varItemCols[i2%4]}"></span>${k}</span>`).join('');
+
+  // 당월 항목별 바 차트
+  mk('sdVarBar',{type:'bar',data:{
+    labels:varItemNames,
+    datasets:[{data:teamVarItems.map(arr=>Math.round(arr[ci]/1e6*10)/10),backgroundColor:varItemCols,borderRadius:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${fa(c.raw*1e6)}`}}},scales:{y:{ticks:{callback:v=>fa(v*1e6)},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}}});
+
+  // 월별 추이 누적 바 차트
+  mk('sdVarTr',{type:'bar',data:{
+    labels:ML,
+    datasets:varItemNames.map((k,i2)=>({
+      label:k,
+      data:teamVarItems[i2].map(v=>Math.round(v/1e6)),
+      backgroundColor:varItemCols[i2%4],
+      stack:'s'
+    }))
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:v=>fa(v*1e6)},grid:{color:'rgba(0,0,0,.04)'}}}}});
+}
+
+// ── 판관비 ──
+function rSA(){
+  const m=MD.sa,i=gi('sa'),isM=m==='m';
+  const lb=isM?[ML[i]]:ML.slice(0,i+1).map((_,j)=>ML[j]+'누계');
+  function gv(a){return isM?[a[i]]:cum(a).slice(0,i+1);}
+  const vv=gv(G.var),fv=gv(G.fix),rv=gv(G.rev);
+  const sv=vv.map((v,k)=>v+fv[k]);const ci=vv.length-1;
+  document.getElementById('sa-pt').textContent=isM?`${ML[i]} 변동비 vs 고정비`:'누계 변동비 vs 고정비';
+  document.getElementById('sa-tt').textContent=isM&&lb.length===1?`${ML[i]} 판관비 구성`:'판관비 월별 추이';
+  document.getElementById('sa-dv').textContent=fa(sv[ci]);
+  document.getElementById('sa-ds').textContent=`매출대비 ${rv[ci]?(sv[ci]/rv[ci]*100).toFixed(1):0}%`;
+  document.getElementById('sa-k').innerHTML=[{l:'판관비 합계',v:sv[ci],sub:`매출대비 ${rv[ci]?(sv[ci]/rv[ci]*100).toFixed(1):0}%`},{l:'변동비',v:vv[ci],sub:`매출대비 ${rv[ci]?(vv[ci]/rv[ci]*100).toFixed(1):0}%`},{l:'고정비',v:fv[ci],sub:`매출대비 ${rv[ci]?(fv[ci]/rv[ci]*100).toFixed(1):0}%`},{l:'변동/고정',v:null,raw:`${sv[ci]?(vv[ci]/sv[ci]*100).toFixed(0):0}%/${sv[ci]?(fv[ci]/sv[ci]*100).toFixed(0):0}%`,sub:'변동:고정'}].map(x=>`<div class="card"><div class="cl">${x.l}</div><div class="cv" style="font-size:${x.v===null?'16px':'20px'}">${x.v!==null?fa(x.v):x.raw}</div><div class="cs" style="color:var(--text2)">${x.sub}</div></div>`).join('');
+  mk('saPie',{type:'doughnut',data:{labels:['변동비','고정비'],datasets:[{data:[vv[ci],fv[ci]],backgroundColor:['#C2601A','#F0A96B'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${fa(c.raw)} (${sv[ci]?(c.raw/sv[ci]*100).toFixed(1):0}%)`}}}}});
+  if(isM&&lb.length===1){mk('saTr',{type:'bar',data:{labels:['변동비','고정비'],datasets:[{data:[vv[0],fv[0]],backgroundColor:['#C2601A','#F0A96B'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${fa(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fa(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{grid:{display:false}}}}});}
+  else{mk('saTr',{type:'bar',data:{labels:lb,datasets:[{label:'변동비',data:vv.map(v=>Math.round(v/1e6)),backgroundColor:'#D4753A',stack:'s'},{label:'고정비',data:fv.map(v=>Math.round(v/1e6)),backgroundColor:'#F5C9A0',stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'억'},grid:{color:'rgba(0,0,0,.04)'}}}}});}
+  const dc=n=>n>0?'dn':n<0?'dp':'dz';
+  if(isM){
+    const ci2=i,pi=i>0?i-1:null;
+    document.getElementById('sa-dt').textContent=pi!==null?`${ML[pi]} → ${ML[ci2]} 전월 대비 변동`:`${ML[ci2]} 판관비 상세`;
+    const bR=(items,lbl)=>{const tc=Object.values(items).reduce((s,a)=>s+a[ci2],0),tp=pi!==null?Object.values(items).reduce((s,a)=>s+a[pi],0):null,d=tp!==null?tc-tp:null;let h=`<tr class="bold"><td>${lbl}</td><td>${fa(tc)}</td><td style="color:var(--text2)">${G.rev[ci2]?(tc/G.rev[ci2]*100).toFixed(1):0}%</td>`;if(pi!==null)h+=`<td>${fa(tp)}</td><td><span class="${dc(d)}">${d>0?'+':''}${fa(d)}</span></td>`;h+='</tr>';Object.entries(items).forEach(([n,arr])=>{const c=arr[ci2],p=pi!==null?arr[pi]:null,df=p!==null?c-p:null;h+=`<tr><td style="padding-left:20px;color:var(--text2);font-size:11px">∙ ${n}</td><td style="font-size:11px">${fa(c)}</td><td style="font-size:11px;color:var(--text2)">${G.rev[ci2]?(c/G.rev[ci2]*100).toFixed(1):0}%</td>`;if(pi!==null)h+=`<td style="font-size:11px">${fa(p)}</td><td><span class="${dc(df)}">${df>0?'+':''}${fa(df)}</span></td>`;h+='</tr>';});return h;};
+    const hp=pi!==null;
+    document.getElementById('sa-df').innerHTML=`<table><thead><tr>${hp?`<th>항목</th><th>${ML[ci2]}</th><th>매출비</th><th>${ML[pi]}</th><th>전월대비</th>`:`<th>항목</th><th>${ML[ci2]}</th><th>매출비</th>`}</tr></thead><tbody>${bR(G.varI,'▸ 변동비')}${bR(G.fixI,'▸ 고정비')}</tbody></table>`;
+  } else {
+    const ms=ML.slice(0,i+1);
+    document.getElementById('sa-dt').textContent=`판관비 항목별 월별 추이 (${ML[0]} ~ ${ML[i]})`;
+    const curIdx=i;
+    function thS(j){return j===curIdx?'background:#f0f5ff;font-weight:600;':'';}
+    function tdS(j){return j===curIdx?'background:#f8fbff;':'';}
+    const bR2=(items,lbl)=>{
+      const ts=ms.map((_,mi)=>Object.values(items).reduce((s,a)=>s+a[mi],0));
+      let h=`<tr class="bold"><td>${lbl}</td>${ts.map((v,j)=>`<td style="${thS(j)}">${fa(v)}</td>`).join('')}</tr>`;
+      Object.entries(items).forEach(([n,arr])=>{
+        h+=`<tr><td style="padding-left:20px;color:var(--text2);font-size:11px">∙ ${n}</td>${ms.map((_,j)=>`<td style="font-size:11px;${tdS(j)}">${fa(arr[j])}</td>`).join('')}</tr>`;
+      });
+      return h;
+    };
+    document.getElementById('sa-df').innerHTML=`<table><thead><tr><th>항목</th>${ms.map((l,j)=>`<th style="${thS(j)}">${l}</th>`).join('')}</tr></thead><tbody>${bR2(G.varI,'▸ 변동비')}${bR2(G.fixI,'▸ 고정비')}</tbody></table>`;
+  }
+  const vk=Object.keys(G.varI);
+  mk('vaC',{type:'bar',data:{labels:vk,datasets:[{data:vk.map(k=>gv(G.varI[k])[ci]),backgroundColor:VIC.slice(0,vk.length),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${fa(c.raw)}`}}},scales:{y:{ticks:{callback:v=>fa(v)},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:11}},grid:{display:false}}}}});
+  const fk=Object.keys(G.fixI);
+  mk('fiC',{type:'bar',data:{labels:fk,datasets:[{data:fk.map(k=>gv(G.fixI[k])[ci]),backgroundColor:fk.map((_,k)=>FIC[k%FIC.length]),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${fa(c.raw)}`}}},indexAxis:'y',scales:{x:{ticks:{callback:v=>fa(v)},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{font:{size:10}},grid:{display:false}}}}});
+}
+
+['pl','dt','sl','sg','sa'].forEach(rd);
+</script>
+</body>
+</html>
